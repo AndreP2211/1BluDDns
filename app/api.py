@@ -16,7 +16,12 @@ class Api:
     def __init__(self, username : str, password : str, otp_key : str, domain_number : str, contract:str) -> None:
         self._URL_DNS_BASE : str = f"{URL_BASE}/{contract}/domain/{domain_number}/dns/"
         self._URL_SET_DNS : str = f"{self._URL_DNS_BASE}setdnsrecords/"
-        self._session : session.Session = session.Session(username, password, otp_key)
+
+        self._username = username
+        self._password = password
+        self._otp_key = otp_key
+
+        self._session = None
         self._records = None
 
 
@@ -62,6 +67,15 @@ class Api:
         return True
     
     def renew_session_if_needed(self):
+        if self._session is None:
+            logging.info("Creating 1blu session...")
+            self._session = session.Session(
+                self._username,
+                self._password,
+                self._otp_key
+            )
+            return
+
         if(self._session.is_session_valid()):
             return
         
@@ -69,7 +83,10 @@ class Api:
         self._session.renew()
 
     def update_address(self, subdomain :str, rrtype: str, new_target:str) -> bool:
-        """Updates a url on 1blu by fetching the current records, updating them and pushing them back again."""
+        """Updates a DNS record on 1blu."""
+
+        self.renew_session_if_needed()
+
         if(not self.fetch_records()):
             logging.error("Updating address failed: Fetching records failed.")
             return False

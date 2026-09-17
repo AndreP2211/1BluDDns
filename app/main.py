@@ -101,7 +101,6 @@ def check_for_updates(domain: str, subdomain: str, rrtype: str, api : api.Api):
             continue
         
         logging.info(f"DNS records are not up to date for: {sd}.{domain} ({rrt}). Updating from '{remote_ip}' to '{my_ip}'.")
-        api.renew_session_if_needed()
         if (api.update_address(sd,rrt,my_ip)):
             logging.info("Updating sucessful.")
         
